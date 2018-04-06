@@ -1,5 +1,6 @@
 %% creation of the boat and tsukuba dataset
-clear all;
+clear all; 
+close all; 
 
 for FIG = 1:6
     boat(FIG).fig = imread(['img' num2str(FIG) '.pgm']);
@@ -35,14 +36,16 @@ for PT= 1:5
 end
 
 %% David's work starts here
-% Q1, 3a 
+
+%         Q1, 3a: Calculating the homography matrix (HA) 
+
 % Finding the homogenous matrix using SVD 
 % This will be done using 10 matched points on the two images 
 
 %Building the A matrix, by vertically concatenating the 10 equations from
 %the 5 different corrosponding points
 
-A = [];     %Initialise the matrix
+A = [];     
 for Pt = 1 : length(Bc) 
     Ax = [-Bc(1,1,Pt),-Bc(2,1,Pt),-1,0,0,0,Bc(1,2,Pt)*Bc(1,1,Pt),Bc(1,2,Pt)*Bc(2,1,Pt),Bc(1,2,Pt)];
     Ay = [0,0,0,-Bc(1,1,Pt),-Bc(2,1,Pt),-1,Bc(2,2,Pt)*Bc(1,1,Pt),Bc(2,2,Pt)*Bc(2,1,Pt),Bc(2,2,Pt)];
@@ -50,13 +53,38 @@ for Pt = 1 : length(Bc)
 end 
 
 %Compute the singular value decomposition
-[U,S,V] = svd(A);
+[~,~,V] = svd(A);
 h = V(:,9)/V(9,9); 
-h = [h(1:3,1);h(4:6,1);h(7:9,1)];
+HA = [h(1:3,1)';h(4:6,1)';h(7:9,1)'];         % The homography matrix 
 
-% Q1, 3b 
-% Q1, 3c 
-% Q1, 3d 
+%         Q1, 3b: Calculating the fundemental matrix (FA)
+B = [];     
+for PT = 1 : length(Tc) 
+    Bx = [Tc(1,1,PT)*Tc(1,2,PT),Tc(1,2,PT)*Tc(2,1,PT),Tc(1,2,PT),Tc(1,1,PT)*Tc(2,2,PT),Tc(2,1,PT)*Tc(2,2,PT),Tc(2,2,PT),Tc(1,1,PT),Tc(2,1,PT),1];
+    B = [B;Bx]; 
+end 
+
+%Compute the singular value decomposition
+[~,~,V] = svd(B);
+f = V(:,9)/V(9,9); 
+FA = [f(1:3,1)';f(4:6,1)';f(7:9,1)'];          % The fundamental matrix
+
+%          Q1, 3c: Homographic point projection and accruacy  
+
+A_Est = zeros(2,5);     % Estimation of points in image A
+Dist = zeros(1,5);      % Initialise a distance vector for accuracy
+
+% Iterate through the 5 points 
+for Pt = 1 : length(Bc)
+    Atemp= HA\[Bc(:,2,Pt);1]; 
+    A_Est(:,Pt) = Atemp(1:2,1);
+    Dist(1,Pt) = sqrt((Atemp(1,1)-Bc(1,1,Pt))^2+(Atemp(2,1)-Bc(2,1,Pt))^2);
+end 
+
+Accuracy = sum(Dist)/length(Bc); 
+fprintf(" The average accuracy is %4.2f pixels \n", Accuracy); 
+
+%          Q1, 3d: Epipolar line generation and accuracy 
 
 
 
