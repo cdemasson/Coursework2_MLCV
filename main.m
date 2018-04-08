@@ -21,5 +21,19 @@ for PT=1:10
     end
 end
 
-%% use Harris feature detector
-boat_interest_points = my_harris_detector(boat(1).fig);
+%% Harris feature detector for boat images
+sigma = 3;
+alpha = 0.03;
+trshld = 45;
+r = 6;
+figure(1);
+boat_interest_points = my_harris_detector(boat(1).fig, sigma, alpha, trshld, r);
+%% Harris feature detector for tsukuba images
+%the tsukuba feature detector isn't very good because it only uses the 
+%red component of the three dimensional (RGB) picture
+sigma = 3;
+alpha = 0.03;
+trshld = 20;
+r = 6;
+figure(2);
+tsukuba_interest_points = my_harris_detector(tsukuba(1).fig, sigma, alpha, trshld, r);

@@ -1,4 +1,4 @@
-function [interest_points] = my_harris_detector(pic_data)
+function [interest_points] = my_harris_detector(pic_data, sigma, alpha, trshld, r)
 % The Harris detector function is an intensity based method which computes
 % interest point of a given image
 % This function works well with the boat dataset because it is a gray
@@ -16,21 +16,18 @@ Iy2 = conv2(Iy, Iy, 'same');
 Ixy = conv2(Ix, Iy, 'same');
 
 %step 3: apply gaussian filter
-sigma = 2; %make it vary
 GIx2 = imgaussfilt(Ix2, sigma);
 GIy2 = imgaussfilt(Iy2, sigma);
 GIxy = imgaussfilt(Ixy, sigma);
 
 %step 4: cornerness function
-alpha = 0.05; %make it vary
 har = GIx2.*GIy2 - GIxy.^2 - alpha*(GIx2 + GIy2).^2;
-%%
+
 %scaling har such as its values are <= 100
-R = har / max(max(har)) * 100;
+har_max = max(max(har));
+R = har / har_max * 100;
 
 %step 5: non maxima suppression
-trshld = 50;
-r = 6;
 sze = 2*r+1;
 mx = ordfilt2(R,sze^2,ones(sze));
 R = (R==mx)&(R>trshld); 
@@ -44,7 +41,7 @@ else
     imshow(pic_data);
     hold on;
     for pts = 1:length(interest_points)
-        plot(interest_points(pts,1), interest_points(pts,2), 'r+');
+        plot(interest_points(pts,2), interest_points(pts,1), 'r+');
     end
 end
 
