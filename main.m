@@ -24,10 +24,10 @@ for PT= 1:5
         [Bc(1, FIG, PT), Bc(2, FIG, PT)] = ginput(1);
     end
 end
-
+%%
 Tc = zeros(2,2,5);      %Tsukuba Coordinates
 Pictures_T = [1,2]; 
-for PT= 1:5
+for PT= 1:10
     for FIG = Pictures_T
         figure(FIG);
         imshow(tsukuba(FIG).fig);
@@ -44,13 +44,36 @@ FM = FundMatrix(Tc);
 %% Q1, 3c: Homographic point projection and accruacy  
 
 Accuracy = HomogAccuracy(Bc,HM);
-
 %%  Q1, 3d: Epipolar line generation and accuracy 
 
+% Calculate the epipole of image A given the fundamental matrix and the
+% corrosponding point on image B. 
+[~,~,V] = svd(FM);
+[~,~,VV] = svd(transpose(FM));
+EpipoleA = V(:,3)/V(3,3);
+EpipoleA = EpipoleA(1:2,1);     %Only use the x,y coordinates
+EpipoleB = VV(:,3)/VV(3,3); 
+EpipoleB = EpipoleB(1:2,1); 
+
+%Create a line for the first point in image A 
+PtA = Tc(:,1,5);                    % Select the interest point for epipole line 
+Temp = size(tsukuba(1).fig); 
+% PtA = (X1,Y1) 
+% EpipoleA = (X2,Y2)
+x = 1 : Temp(1,2); 
+y = ((EpipoleA(2,1)-PtA(2,1))/(EpipoleA(1,1)-PtA(1,1)))*(x-PtA(1,1)) + PtA(2,1); 
+
+% Plotting 
+figure(1);
+imshow(tsukuba(1).fig)
+hold on 
+plot(x,y,'r',EpipoleA(1,1),EpipoleA(2,1),'b+', PtA(1,1), PtA(2,1),'g+'); 
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+legend("Epipolar line", "Epipole", "Interest point"); 
 
 
 %**************************************************************************
-% <<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+%% <<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 %**************************************************************************
 
 
