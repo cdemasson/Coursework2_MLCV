@@ -11,7 +11,7 @@
 % max_N & min_N
 % A. Ganoun
 
-frame = tsukuba(3).fig;
+frame = boat(1).fig;
 
 I =double(frame);
 %****************************
@@ -48,6 +48,8 @@ dx = [-1 0 1; -1 0 1; -1 0 1]; % The Mask
     %%%%%%%%%%%%%%
     k = 0.04;
     R11 = (Ix2.*Iy2 - Ixy.^2) - k*(Ix2 + Iy2).^2;
+    
+    % non maxima detection
     R11=(1000/max(max(R11)))*R11;
     R=R11;
     ma=max(max(R));

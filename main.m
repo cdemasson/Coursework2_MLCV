@@ -22,4 +22,4 @@ for PT=1:10
 end
 
 %% use Harris feature detector
-tsubuka_interest_points = my_harris_detector(tsukuba(1).fig);
+boat_interest_points = my_harris_detector(boat(1).fig);

@@ -1,6 +1,9 @@
 function [interest_points] = my_harris_detector(pic_data)
 % The Harris detector function is an intensity based method which computes
 % interest point of a given image
+% This function works well with the boat dataset because it is a gray
+% scaled image. It doesn't take into account the three RGB components for
+% the tsukuba dataset. 
 
 %step 1: compute the x and y derivatives of the image (sobel derivatives)
 derivativeFilter = [-1 -2 -1; 0 0 0; 1 2 1];
@@ -21,9 +24,29 @@ GIxy = imgaussfilt(Ixy, sigma);
 %step 4: cornerness function
 alpha = 0.05; %make it vary
 har = GIx2.*GIy2 - GIxy.^2 - alpha*(GIx2 + GIy2).^2;
+%%
+%scaling har such as its values are <= 100
+R = har / max(max(har)) * 100;
 
 %step 5: non maxima suppression
+trshld = 50;
+r = 6;
+sze = 2*r+1;
+mx = ordfilt2(R,sze^2,ones(sze));
+R = (R==mx)&(R>trshld); 
 
-interest_points = pic_data;
+clear interest_points;
+[interest_points(:,1), interest_points(:,2)] = find(R);
+
+if isempty(interest_points)
+    disp('No interest points were found');
+else
+    imshow(pic_data);
+    hold on;
+    for pts = 1:length(interest_points)
+        plot(interest_points(pts,1), interest_points(pts,2), 'r+');
+    end
+end
+
 end
 
