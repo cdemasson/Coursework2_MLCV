@@ -45,6 +45,10 @@ FM = FundMatrix(Tc);
 
 Accuracy = HomogAccuracy(Bc,HM);
 %%  Q1, 3d: Epipolar line generation and accuracy 
+
+% Determining the epipolar line (in image A for example) using the 
+% fundamental matrix and an interest point in A
+
 range = size(tsukuba(1).fig); 
 range = range(1,2); 
 Point = Tc(:,1,1); 
@@ -61,18 +65,20 @@ plot(x,y,'r',Epipole(1,1),Epipole(2,1),'b+', Point(1,1), Point(2,1),'g+');
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 legend("Epipolar line", "Epipole", "Interest point"); 
 
-% Generating the epipolar line in image B from the corrosponding points in
-% image A. Where point in image A (x,y) and point in image B (x',y') 
-%line' = FM*x. Then calculate the distance between point (x',y') and line'
-
-% I think line outputs (A;B;C), where Ax+By+C = 0 
+% Determining the projected epipolar line in image B, from a projection of
+% a point in image A using Line' = FM*X. 
+% Once off calculation to plot this projected epipolar line on image B
 LineB = FM*[Tc(:,1,1);1]; 
 xb = 1:range; 
 yb = (-LineB(1,1)*x-LineB(3,1))/LineB(2,1); 
+figure(2);
+imshow(tsukuba(2).fig)
+hold on 
+plot(xb,yb,'r',Tc(1,2,1),Tc(2,2,1),'b+')
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 
-
-
-
+% De
+FA = Fund_Matrix_Accuracy(FM,Tc); 
 
 %**************************************************************************
 %% <<<<<<<<<<<<<<<<<<<<<<<<<<< Functions >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
@@ -180,7 +186,30 @@ Epipolar.y = y;
 Epipolar.e = Epipole; 
 end 
 
+%**************************************************************************
+%              FUNCTION 5: Average distance between point and epipolar line
 
+function FA = Fund_Matrix_Accuracy(FM,CC)
+% This function calculates the average distance between points in image B 
+% and the mapped epipolar line generated using the fundamental matrix and 
+% corrosponding coordinates L' = FM*X, where X is the point in image A and 
+% X' is the corrosponding point in image B. 
+Total_Distance = 0;         % Initilise the total distance to zero 
+for PT = 1: length(CC)
+ % Get the corrosponding point in image B
+PtbX = CC(1,2,PT);              
+PtbY = CC(2,2,PT);
+% LineB outputs (A;B;C), where Ax+By+C = 0 
+LineB = FM*[CC(:,1,PT);1];       % Calculate the epipolar in image B
+A = LineB(1,1);
+B = LineB(2,1);
+C = LineB(3,1);
+% Calculate the distance between the point and the line in image B
+Total_Distance = Total_Distance + abs(A*PtbX+B*PtbY+C)/(sqrt(A^2+B^2)); 
+end 
+FA = Total_Distance/PT;     % Calculate the average distance for all the points
+fprintf(" The average fundamental accuracy is %4.2f pixels \n", FA); 
+end 
 
 
 
