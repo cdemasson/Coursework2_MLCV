@@ -45,31 +45,36 @@ FM = FundMatrix(Tc);
 
 Accuracy = HomogAccuracy(Bc,HM);
 %%  Q1, 3d: Epipolar line generation and accuracy 
-
-% Calculate the epipole of image A given the fundamental matrix and the
-% corrosponding point on image B. 
-[~,~,V] = svd(FM);
-[~,~,VV] = svd(transpose(FM));
-EpipoleA = V(:,3)/V(3,3);
-EpipoleA = EpipoleA(1:2,1);     %Only use the x,y coordinates
-EpipoleB = VV(:,3)/VV(3,3); 
-EpipoleB = EpipoleB(1:2,1); 
-
-%Create a line for the first point in image A 
-PtA = Tc(:,1,5);                    % Select the interest point for epipole line 
-Temp = size(tsukuba(1).fig); 
-% PtA = (X1,Y1) 
-% EpipoleA = (X2,Y2)
-x = 1 : Temp(1,2); 
-y = ((EpipoleA(2,1)-PtA(2,1))/(EpipoleA(1,1)-PtA(1,1)))*(x-PtA(1,1)) + PtA(2,1); 
+range = size(tsukuba(1).fig); 
+range = range(1,2); 
+Point = Tc(:,1,1); 
+Epipolar = EpiLine(FM,Point,true,range); 
+x = Epipolar.x; 
+y = Epipolar.y; 
+Epipole = Epipolar.e; 
 
 % Plotting 
 figure(1);
 imshow(tsukuba(1).fig)
 hold on 
-plot(x,y,'r',EpipoleA(1,1),EpipoleA(2,1),'b+', PtA(1,1), PtA(2,1),'g+'); 
+plot(x,y,'r',Epipole(1,1),Epipole(2,1),'b+', Point(1,1), Point(2,1),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 legend("Epipolar line", "Epipole", "Interest point"); 
+
+% Generating the epipolar line in image B from the corrosponding points in
+% image A. Where point in image A (x,y) and point in image B (x',y') 
+%line' = FM*x. Then calculate the distance between point (x',y') and line'
+
+% I think line outputs (A;B;C), where Ax+By+C = 0 
+LineB = FM*[Tc(:,1,1);1]; 
+xb = 1:range; 
+yb = (-LineB(1,1)*x-LineB(3,1))/LineB(2,1); 
+figure(2);
+imshow(tsukuba(2).fig)
+hold on 
+plot(xb,yb,'r',Tc(1,2,1),Tc(2,2,1),'b+')
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+
 
 
 %**************************************************************************
@@ -150,4 +155,39 @@ end
 Accuracy = sum(Dist)/length(CC); 
 fprintf(" The average homographic accuracy is %4.2f pixels \n", Accuracy); 
 end 
+
+%**************************************************************************
+%              FUNCTION 4: Epipole and Epipolar Line 
+
+function Epipolar = EpiLine(FM,Point,B2A,range)
+% FM is the fundamental matrix between image A and B. Point is the Point 
+% in image A or B. If the epipole in image A is required then B2A = true,
+% if the epipole in image B is required then B2A = false. 
+% range is the domain of the image (Full X domain) 
+if (B2A == false)
+    FM = FM.';          % Take the transpose when projecting from A to B 
+end 
+
+% Calculate the Epipole in the image 
+[~,~,V] = svd(FM);
+Epipole = V(:,3)/V(3,3);
+Epipole = Epipole(1:2,1);     %Only use the x,y coordinates
+
+%Create a line for the first point in image A 
+% Point = (X1,Y1) 
+% Epipole = (X2,Y2)
+x = 1 : range; 
+y = ((Epipole(2,1)-Point(2,1))/(Epipole(1,1)-Point(1,1)))*(x-Point(1,1)) + Point(2,1); 
+Epipolar.x = x; 
+Epipolar.y = y; 
+Epipolar.e = Epipole; 
+end 
+
+
+
+
+
+
+
+
 
