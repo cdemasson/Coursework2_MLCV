@@ -2,9 +2,11 @@ function [histogram] = colour_descriptor(pic_data, interest_points)
 %The get_descriptors function returns the colour histogram of a patch
 %extracted from a picture
 
+nb_bins = 64;
+histogram = zeros(length(interest_points), nb_bins);
+
 %extracting patch: 5x5 pixels
 for pt=1:length(interest_points)
-    i=1;
     for x = interest_points(pt,1)-2:interest_points(pt,1)+2
         for y = interest_points(pt,2)-2:interest_points(pt,2)+2
             if x > 0 && y > 0 && x <= size(pic_data,1) && y <= size(pic_data,2)
@@ -21,8 +23,8 @@ for pt=1:length(interest_points)
                     end
                 end
                 %the base 4 number gives the final bin
-                histogram(pt,i) = base2dec(int2str(bins(1)+10*bins(2)+100*bins(3)), 4);
-                i=i+1;
+                bin = base2dec(int2str(bins(1)+10*bins(2)+100*bins(3)), 4)+1;
+                histogram(pt,bin) = histogram(pt,bin) + 1;
             end
         end
     end

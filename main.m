@@ -24,7 +24,7 @@ end
 %% Harris feature detector for boat images
 sigma = 3;
 alpha = 0.03;
-trshld = 45;
+trshld = 40;
 r = 6;
 figure(1);
 boat_interest_points = my_harris_detector(boat(1).fig, sigma, alpha, trshld, r);

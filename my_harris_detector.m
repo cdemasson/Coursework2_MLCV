@@ -34,6 +34,8 @@ R = (R==mx)&(R>trshld);
 
 clear interest_points;
 [interest_points(:,1), interest_points(:,2)] = find(R);
+%this line allows us to use this function with coloured pictures too
+interest_points(:,2) = mod(interest_points(:,2),size(pic_data,2))+1;
 
 if isempty(interest_points)
     disp('No interest points were found');
