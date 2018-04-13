@@ -1,4 +1,4 @@
-%% creation of the boat and tsukuba dataset
+%% Clearing previous variables
 clear all
 close all
 % *************************************************************************
@@ -15,10 +15,10 @@ for FIG = 1:5
     tsukuba(FIG).fig = imread(['scene1.row3.col' num2str(FIG) '.ppm']);
 end
 
-for FIG = 1:2
+for FIG = 1:4
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['scene1.row3.col' num2str(FIG) '.ppm']);  
+    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
     % Uncomment if you need to rotate the images
     %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
@@ -167,8 +167,8 @@ legend("Epipolar line", "Epipole", "Interest point");
 
 %% Disparity map 
 %First convert to grayscale
-ImageA = rgb2gray(tsukuba(1).fig);
-ImageB = rgb2gray(tsukuba(2).fig);
+ImageA = rgb2gray(FDimages(1).fig);
+ImageB = rgb2gray(FDimages(2).fig);
 % Disparity range is the range of disparity to show, the differenc must be
 % divisible by 16
 disparityRange = [0 16];
@@ -209,8 +209,8 @@ imshow(I2Rect)
 visualize = 1; 
 
 %                   STEP 1:   Read stereo image pair  
-I1 = FDimages(1).fig;
-I2 = FDimages(2).fig; 
+I1 = FDimages(2).fig;
+I2 = FDimages(3).fig; 
 % Convert to grayscale.
 I1gray = rgb2gray(I1);
 I2gray = rgb2gray(I2);
@@ -219,12 +219,12 @@ if (visualize == 1)
 figure;
 imshowpair(I1, I2,'montage');
 title('I1 (left); I2 (right)');
-figure;
+figure(2);
 imshow(stereoAnaglyph(I1,I2));
 title('Composite Image (Red - Left Image, Cyan - Right Image)');
 end 
 
-%                 STEP 2:   Collect interest points 
+%                STEP 2:   Collect interest points 
 
 blobs1 = detectSURFFeatures(I1gray, 'MetricThreshold', 2000);
 blobs2 = detectSURFFeatures(I2gray, 'MetricThreshold', 2000);

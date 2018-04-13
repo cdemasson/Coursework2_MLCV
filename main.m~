@@ -1,4 +1,4 @@
-%% creation of the boat and tsukuba dataset
+%% Clearing previous variables
 clear all
 close all
 % *************************************************************************
@@ -18,7 +18,7 @@ end
 for FIG = 1:2
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['LS' num2str(FIG) '.JPG']);  
+    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
     % Uncomment if you need to rotate the images
     %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
@@ -219,12 +219,12 @@ if (visualize == 1)
 figure;
 imshowpair(I1, I2,'montage');
 title('I1 (left); I2 (right)');
-figure;
+figure(2);
 imshow(stereoAnaglyph(I1,I2));
 title('Composite Image (Red - Left Image, Cyan - Right Image)');
 end 
 
-%                 STEP 2:   Collect interest points 
+%%                STEP 2:   Collect interest points 
 
 blobs1 = detectSURFFeatures(I1gray, 'MetricThreshold', 2000);
 blobs2 = detectSURFFeatures(I2gray, 'MetricThreshold', 2000);
@@ -262,10 +262,42 @@ end
 
 %            STEP 4:   Remove outliers using Epopolar Constraints
 
+[fMatrix, epipolarInliers, status] = estimateFundamentalMatrix(...
+  matchedPoints1, matchedPoints2, 'Method', 'RANSAC', ...
+  'NumTrials', 10000, 'DistanceThreshold', 0.1, 'Confidence', 99.99);
+
+if status ~= 0 || isEpipoleInImage(fMatrix, size(I1)) ...
+  || isEpipoleInImage(fMatrix', size(I2))
+  error(['Either not enough matching points were found or '...
+         'the epipoles are inside the images. You may need to '...
+         'inspect and improve the quality of detected features ',...
+         'and/or improve the quality of your images.']);
+end
+
+inlierPoints1 = matchedPoints1(epipolarInliers, :);
+inlierPoints2 = matchedPoints2(epipolarInliers, :);
+
+if (visualize == 1)
+figure;
+showMatchedFeatures(I1, I2, inlierPoints1, inlierPoints2);
+legend('Inlier points in I1', 'Inlier points in I2');
+end 
+
+%                   STEP 5:   Rectify Images
+
+[t1, t2] = estimateUncalibratedRectification(fMatrix, ...
+  inlierPoints1.Location, inlierPoints2.Location, size(I2));
+tform1 = projective2d(t1);
+tform2 = projective2d(t2);
 
 
-
-
-
+[I1Rect, I2Rect] = rectifyStereoImages(I1, I2, tform1, tform2);
+if (visualize == 1)
+figure;
+imshowpair(I1Rect, I2Rect,'montage');
+figure;
+imshow(stereoAnaglyph(I1Rect, I2Rect));
+title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
+end 
 
 
