@@ -54,7 +54,7 @@ end
 
 %% FD SEQUENCE 
 FDcc = zeros(2,2,4);      % FD Corrosponding Coordinates
-Picture = [3,4];       % Select the pictures to compare
+Picture = [1,2];       % Select the pictures to compare
 Pic1 = Picture(1,1); 
 Pic2 = Picture(1,2); 
 for PT= 1:10
@@ -188,21 +188,10 @@ CPointA = [];
 CPointB = [];
 for i = 1: length(FDcc) 
 CPointA = [CPointA;FDcc(:,1,i).'];
-CPointB = [CPointB;FDcc(:,2,i).'];
+CPointB = [CPointB;FDcc(:,2,).'];
 end 
-[T1,T2] = estimateUncalibratedRectification(FM,CPointA,CPointB,size(FDimages(1).fig)); 
-tform1 = projective2d(T1);
-tform2 = projective2d(T2);
-[I1Rect, I2Rect] = rectifyStereoImages(FDimages(1).fig, FDimages(2).fig, tform1, tform2);
-figure(1)
-subplot(1,2,1) 
-imshow(I1Rect)
-subplot(1,2,2) 
-imshow(I2Rect)
+%[T1,T2] = estimateUncalibratedRectification(FM,
 
-% figure(3)
-% imshow(stereoAnaglyph(I1Rect, I2Rect));
-% title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
 
 
 
