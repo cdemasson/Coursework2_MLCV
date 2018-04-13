@@ -53,7 +53,7 @@ end
 
 %% FD SEQUENCE 
 FDcc = zeros(2,2,4);      % FD Corrosponding Coordinates
-Picture = [1,2];       % Select the pictures to compare
+Picture = [2,3];       % Select the pictures to compare
 Pic1 = Picture(1,1); 
 Pic2 = Picture(1,2); 
 for PT= 1:10
@@ -299,5 +299,51 @@ figure;
 imshow(stereoAnaglyph(I1Rect, I2Rect));
 title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
 end 
+
+%% Collecting all epipolar lines and plotting them on the  two image 
+
+
+
+FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
+% Calculate the maximum range in the X coordinate
+range = size(FDimages(1).fig);  
+range = range(1,2); 
+
+ for IPs = 1:length(FDcc)
+     PointA = FDcc(:,1,IPs);
+     PointB = FDcc(:,2,IPs);
+     
+    EpipolarA = EpiLine(FM,PointA,true,range);
+    EpipolarB = EpiLine(FM,PointA,false,range);
+    EpilinesA(IPs).fig = [EpipolarA.x;EpipolarA.y];
+    EpilinesB(IPs).fig = [EpipolarB.x;EpipolarB.y];
+ end 
+
+% Plotting the epipolar lines on the images
+figure(1);
+imshow(FDimages(1).fig)
+hold on 
+figure(2);
+imshow(FDimages(2).fig)
+hold on 
+
+for IPs = 1:length(FDcc)
+figure(1);
+plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',FDcc(1,1,IPs),FDcc(2,1,IPs),'g+'); 
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+hold on 
+figure(2);
+plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',FDcc(1,2,IPs),FDcc(2,2,IPs),'g+'); 
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+hold on 
+end
+%%  
+
+
+
+
+
+
+
 
 
