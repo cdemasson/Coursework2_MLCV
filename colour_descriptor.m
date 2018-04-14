@@ -30,4 +30,3 @@ for pt=1:length(interest_points)
     end
 end
 end
-
