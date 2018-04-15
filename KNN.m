@@ -64,7 +64,7 @@ end
 % Not the right way to chose best points. You should use a threshold instead.
 sorted_predict = sortrows(PREDICTION, 2);
 pt = 1;
-threshold = 8.0; % make this vary
+threshold = 7.0; % make this vary
 while sorted_predict(pt,2) < threshold && pt <=100
 	% matching points contains [pic1x pic1y pic2x pic2y] of matching points
 	matching_points(pt,:) = [interest_points1(sorted_predict(pt,3),:) interest_points2(sorted_predict(pt,1),:)];
@@ -74,7 +74,7 @@ end
 figure(1);
 imshow(picture(1).fig);
 hold on;
-length(matching_points)
+length(matching_points);
 for pts = 1:length(matching_points)
     plot(matching_points(pts,1), matching_points(pts,2), 'r+');
 end
