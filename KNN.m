@@ -24,7 +24,7 @@ nb_bins = size(Train_BD,2)-1;
 matching_points = zeros(100,4);
 for n=1:size(matching_points,1)
     KKNN = zeros(kNN,2);        %[Distance, Label] Matrix 
-    PREDICTION = zeros(length(Train_BD),3); 
+    PREDICTION = zeros(2,3); 
     %Iterate through all test data 
     for i = 1 : length(Test_BD)     
         %Iterate through all train data
@@ -65,11 +65,14 @@ for n=1:size(matching_points,1)
     sorted_predict = sortrows(PREDICTION, 2);
     label = sorted_predict(1,3);
     iPt = sorted_predict(1,1);
+    if label == 0 || iPt == 0
+        break;
+    end
     matching_points(n,:) = [interest_points1(label,:) interest_points2(iPt,:)];
     row_to_delete = find(Train_BD(:,end) == label);
     Train_BD(row_to_delete,:) = [];
     Test_BD(iPt,:) = [];
-%     if PREDICTION(i,2) > 20
+%     if PREDICTION(i,2) > 25
 %         break;
 %     end
 end
