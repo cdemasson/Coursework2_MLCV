@@ -8,7 +8,7 @@ nb_bins = 51;
 histogram = zeros(length(interest_points), nb_bins);
 
 %extracting patch: 7x7 pixels
-dim = 3;
+dim = 4;
 for pt=1:length(interest_points)
     i=1;
     patch = zeros((dim*2+1)^2,1);

@@ -26,9 +26,7 @@ alpha = 0.04;
 trshld = 10;
 r = 6;
 figure(1);
-boat_interest_points = my_harris_detector(boat(1).fig, alpha, trshld, r);
-
-%%
+boat_interest_points1 = my_harris_detector(boat(1).fig, alpha, trshld, r);
 figure(2);
 boat_interest_points2 = my_harris_detector(boat(2).fig, alpha, trshld, r);
 
@@ -51,14 +49,14 @@ figure(2);
 tsukuba_interest_points2 = my_harris_detector(tsukuba(2).fig, alpha, trshld, r);
 
 %% Get boat descriptors
-boat_descriptors1 = gray_descriptor(boat(1).fig, boat_interest_points);
+boat_descriptors1 = gray_descriptor(boat(1).fig, boat_interest_points1);
 boat_descriptors2 = gray_descriptor(boat(2).fig, boat_interest_points2);
 
 %% Get tsukuba descriptors
-tsukuba_descriptors1 = gray_descriptor(tsukuba(1).fig, tsukuba_interest_points1);
-tsukuba_descriptors2 = gray_descriptor(tsukuba(2).fig, tsukuba_interest_points2);
+tsukuba_descriptors1 = colour_descriptor(tsukuba(1).fig, tsukuba_interest_points1);
+tsukuba_descriptors2 = colour_descriptor(tsukuba(2).fig, tsukuba_interest_points2);
 
 %% KNN search
-boat_match = KNN(boat_descriptors1, boat_descriptors2, boat_interest_points, boat_interest_points2, boat);
+boat_match = KNN(boat_descriptors1, boat_descriptors2, boat_interest_points1, boat_interest_points2, boat);
 %%
 tsukuba_match = KNN(tsukuba_descriptors1, tsukuba_descriptors2, tsukuba_interest_points1, tsukuba_interest_points2, tsukuba);
