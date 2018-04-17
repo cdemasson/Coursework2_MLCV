@@ -53,7 +53,7 @@ end
 
 %% FD SEQUENCE 
 FDcc = zeros(2,2,4);      % FD Corrosponding Coordinates
-Picture = [2,3];       % Select the pictures to compare
+Picture = [1,2];       % Select the pictures to compare
 Pic1 = Picture(1,1); 
 Pic2 = Picture(1,2); 
 for PT= 1:10
@@ -87,7 +87,7 @@ Accuracy = HomogAccuracy(Bc,HM);
 
 range = size(tsukuba(1).fig); 
 range = range(1,2); 
-Point = Tc(:,1,1); 
+Point = Tc(:,1,3); 
 Epipolar = EpiLine(FM,Point,true,range); 
 x = Epipolar.x; 
 y = Epipolar.y; 
@@ -104,14 +104,16 @@ legend("Epipolar line", "Epipole", "Interest point");
 % Determining the projected epipolar line in image B, from a projection of
 % a point in image A using Line' = FM*X. 
 % Once off calculation to plot this projected epipolar line on image B
-LineB = FM*[Tc(:,1,1);1]; 
+Ip = 4; 
+LineB = FM*[Tc(:,1,Ip);1]; 
 xb = 1:range; 
 yb = (-LineB(1,1)*x-LineB(3,1))/LineB(2,1); 
 figure(2);
 imshow(tsukuba(2).fig)
 hold on 
-plot(xb,yb,'r',Tc(1,2,1),Tc(2,2,1),'b+')
-set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+plot(xb,yb,'r',Tc(1,2,Ip),Tc(2,2,Ip),'m+')
+set(findall(gca, 'Type', 'Line'),'LineWidth',3);
+legend("Epipolar line in image B","Interest point in B"); 
 
 % Determining the fundamental accuracy using the average distance between
 % points in B and the epipolar lines in B generated using the projection of
@@ -165,45 +167,7 @@ plot(xB,yB,'r',EpipoleB(1,1),EpipoleB(2,1),'b+', PointB(1,1), PointB(2,1),'g+');
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 legend("Epipolar line", "Epipole", "Interest point"); 
 
-%% Disparity map 
-%First convert to grayscale
-ImageA = rgb2gray(FDimages(1).fig);
-ImageB = rgb2gray(FDimages(2).fig);
-% Disparity range is the range of disparity to show, the differenc must be
-% divisible by 16
-disparityRange = [0 16];
-% Blocksize is an odd interger in the range [5 255], it determines the
-% square block size for comparison. 
-disparityMap = disparity(ImageA,ImageB,'BlockSize',5,'DisparityRange',disparityRange);
-figure(1)
-imshow(disparityMap,disparityRange);
-title('Disparity Map');
-colormap(gca,jet) 
-colorbar
-
-
-%% Rectify Images Manual  
-CPointA = [];
-CPointB = [];
-for i = 1: length(FDcc) 
-CPointA = [CPointA;FDcc(:,1,i).'];
-CPointB = [CPointB;FDcc(:,2,i).'];
-end 
-[T1,T2] = estimateUncalibratedRectification(FM,CPointA,CPointB,size(FDimages(1).fig)); 
-tform1 = projective2d(T1);
-tform2 = projective2d(T2);
-[I1Rect, I2Rect] = rectifyStereoImages(FDimages(1).fig, FDimages(2).fig, tform1, tform2);
-figure(1)
-subplot(1,2,1) 
-imshow(I1Rect)
-subplot(1,2,2) 
-imshow(I2Rect)
-
-% figure(3)
-% imshow(stereoAnaglyph(I1Rect, I2Rect));
-% title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
-
-%% Rectify Images Matlab   
+%% Q2.2e               ReportImRectify Images Using Matlab   
 
 % Set 1 to visualize and 0 else 
 visualize = 1; 
@@ -290,8 +254,12 @@ end
 tform1 = projective2d(t1);
 tform2 = projective2d(t2);
 
-
-[I1Rect, I2Rect] = rectifyStereoImages(I1, I2, tform1, tform2);
+% NB: HERE ONLY APPLY THE TRANSFORM TO THE IMAEGS WITH THE EPIPOLAR LINES
+% ON THE, THIS ENSURES THE INTEREST POINTS DON'T EFFECT THE TRANSFORMS
+% MATRICIES  
+RA = imread(['RectA.jpg']); 
+RB = imread(['RectB.jpg']); 
+[I1Rect, I2Rect] = rectifyStereoImages(RA, RB, tform1, tform2);
 if (visualize == 1)
 figure;
 imshowpair(I1Rect, I2Rect,'montage');
@@ -299,11 +267,54 @@ figure;
 imshow(stereoAnaglyph(I1Rect, I2Rect));
 title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
 end 
+%%                      Q2.2c: Disparity map 
 
-%% Collecting all epipolar lines and plotting them on the  two image 
+%First convert to grayscale
+% NB: YOU MUST FIRST RUN Q2.2e, AND RECTIFY THE IMAGES
+ImageA = rgb2gray(tsukuba(2).fig);
+ImageB = rgb2gray(tsukuba(3).fig);
+% Disparity range is the range of disparity to show, the differenc must be
+% divisible by 16
+disparityRange = [0 16];
+% Blocksize is an odd interger in the range [5 255], it determines the
+% square block size for comparison. 
+disparityMap = disparity(ImageA,ImageB,'BlockSize',5,'DisparityRange',disparityRange);
+figure(1)
+imshow(disparityMap,disparityRange);
+title('Disparity Map');
+colormap(gca,jet) 
+colorbar
+
+%%                      Q2.2d: Depth map from disparity map 
+
+% Define camera constants in m 
+focal_length = 2.2; 
+baseline = 200;
+SensorSize = 0.1; 
+%SensorSize = 200; 
+
+DepthMap = (focal_length*baseline)./((disparityMap)*SensorSize); 
+%DepthMap = DepthMap/1000;    % Convert to m 
+%find(DepthMap == Inf) 
+
+depthRange = [0 3000];
+figure(2)
+imshow(DepthMap,depthRange) 
+title('Depth Map');
+colorbar
+
+%%              Q2.2e: Depth map from disparity map with random noise 
+
+disparityMapNoise = disparityMap+2*rand();
+figure(2)
+imshow(disparityMapNoise,disparityRange);
+title('Disparity Map');
+colormap(gca,jet) 
+colorbar
 
 
-
+%%                      ADDITIONAL CODE 
+%         Collecting all epipolar lines and plotting them on the  two image 
 FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
 % Calculate the maximum range in the X coordinate
 range = size(FDimages(1).fig);  

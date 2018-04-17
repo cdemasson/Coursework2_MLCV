@@ -8,7 +8,6 @@ function FM = FundMatrix(CC)
         Bx = [CC(1,1,PT)*CC(1,2,PT),CC(1,2,PT)*CC(2,1,PT),CC(1,2,PT),CC(1,1,PT)*CC(2,2,PT),CC(2,1,PT)*CC(2,2,PT),CC(2,2,PT),CC(1,1,PT),CC(2,1,PT),1];
         B = [B;Bx]; 
     end 
-
     %Compute the singular value decomposition
     [~,~,V] = svd(B);
     f = V(:,9)/V(9,9); 
