@@ -6,7 +6,7 @@ function HM = HomogMatrix(CC)
 % CC holds the corrosponding coordinates of the two images 
 %                        [X1 X2;
 % CC is of the form CC =  Y1 Y2]; 
-% The third input for CC determines the image number. I.e. for coordinate
+% The third input for CC determines the interest point number. I.e. for coordinate
 % X2 of image 3:  CC(1,2,3) 
 
 % Finding the homogenous matrix using SVD 

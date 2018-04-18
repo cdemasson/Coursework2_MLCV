@@ -15,10 +15,10 @@ for FIG = 1:5
     tsukuba(FIG).fig = imread(['scene1.row3.col' num2str(FIG) '.ppm']);
 end
 
-for FIG = 1:4
+for FIG = 1:2
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
+    FDimages(FIG).fig = imread(['FD' num2str(FIG) '.jpeg']);  
     % Uncomment if you need to rotate the images
     %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
@@ -126,11 +126,40 @@ FA = Fund_Matrix_Accuracy(FM,Tc);
 %%                 Q2.2 Stereo Vision (Using images FD: LION) 
 % *************************************************************************
 
-%%  Q2.2a
-
-
+%%  Q2.2a      Calculate the fundamental matrix accuracy using manual matcher
+        
 FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
 FA = Fund_Matrix_Accuracy(FM,FDcc);   % Estimating the accuracy 
+
+%% Q2.2aa       Calculate the fundamental matrix accuracy using automatic matcher
+
+% Step 1: Implement harris features detector  
+alpha = 0.05;
+trshld = 1;
+r = 6;
+figure(1);
+FD_interest_points1 = my_harris_detector(FDimages(1).fig, alpha, trshld, r);
+figure(2);
+FD_interest_points2 = my_harris_detector(FDimages(2).fig, alpha, trshld, r);
+
+% Step 2: Get image descriptors  
+FD_descriptors1 = colour_descriptor(FDimages(1).fig, FD_interest_points1);
+FD_descriptors2 = colour_descriptor(FDimages(2).fig, FD_interest_points2);
+
+% Step 3: KNN Interest point matches
+FD_match = KNN(FD_descriptors1, FD_descriptors2, FD_interest_points1, FD_interest_points2, FDimages);
+
+MatchPoints1 = [FD_match(:,2),FD_match(:,1)]; 
+MatchPoints2 = [FD_match(:,4),FD_match(:,3)]; 
+
+% Step 4: Calculate the fundamental matrix for the matches
+%Convert to correct form for Fundamental matrix function 
+for i = 1: length(MatchPoints1)
+    CorrespondingPoints(1:2,1:2,i) =  [MatchPoints1(i,:).',MatchPoints2(i,:).']; 
+end 
+
+FM = FundMatrix(CorrespondingPoints(:,:,randperm(9))); 
+FA = Fund_Matrix_Accuracy(FM,CorrespondingPoints(:,:,randperm(8))); 
 
 %%  Q2.2b
 
@@ -267,18 +296,31 @@ figure;
 imshow(stereoAnaglyph(I1Rect, I2Rect));
 title('Rectified Stereo Images (Red - Left Image, Cyan - Right Image)');
 end 
+
+%% Q2.2ee Perform image rectification using manually matched interest points
+
+% Step 1, calculate the fundamental matrix  
+FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
+% Step 2, convert form of corresponding points   
+MatchPoints1 = [];
+MatchPoints2 = []; 
+for i = 1:length(FDcc) 
+    MatchPoints1 = [MatchPoints1;FDcc(:,1,i).'];  
+    MatchPoints2 = [MatchPoints2;FDcc(:,2,i).' ]; 
+end 
+
 %%                      Q2.2c: Disparity map 
 
 %First convert to grayscale
 % NB: YOU MUST FIRST RUN Q2.2e, AND RECTIFY THE IMAGES
-ImageA = rgb2gray(tsukuba(2).fig);
-ImageB = rgb2gray(tsukuba(3).fig);
+ImageA = rgb2gray(FDimages(1).fig);
+ImageB = rgb2gray(FDimages(2).fig);
 % Disparity range is the range of disparity to show, the differenc must be
 % divisible by 16
 disparityRange = [0 16];
 % Blocksize is an odd interger in the range [5 255], it determines the
 % square block size for comparison. 
-disparityMap = disparity(ImageA,ImageB,'BlockSize',5,'DisparityRange',disparityRange);
+disparityMap = disparity(ImageA,ImageB,'BlockSize',21,'DisparityRange',disparityRange);
 figure(1)
 imshow(disparityMap,disparityRange);
 title('Disparity Map');
@@ -288,9 +330,9 @@ colorbar
 %%                      Q2.2d: Depth map from disparity map 
 
 % Define camera constants in m 
-focal_length = 2.2; 
+focal_length = 18; 
 baseline = 200;
-SensorSize = 0.1; 
+SensorSize = 0.00487; 
 %SensorSize = 200; 
 
 DepthMap = (focal_length*baseline)./((disparityMap)*SensorSize); 
