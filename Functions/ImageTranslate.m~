@@ -1,13 +1,15 @@
 %% FUNCTION: IMAGE TRANSLATOR 
-% Given an image and a translation matrix, this function translates each pixle of the image 
-
-function ImageB = ImageTranslate(ImageA,TranslationMatrix)
+% Given an image and a translation matrix, this function translates each pixle of the image
+% !!!!!!!! NB ::::: YOU MAY HAVE TO CHANGE TO MULTIPLY TO INVERSE IN LINE
+% 11
+% Focal should be set to 1 
+function ImageB = ImageTranslate(ImageA,TranslationMatrix,focal)
     % Iterate through all the rows 
     for rows =  1 : size(ImageA,1) 
         % Iterate through all the cols 
         for cols = 1 : size(ImageA,2)
             try 
-            PixelNewPosition = TranslationMatrix\[cols;rows;1];
+            PixelNewPosition = TranslationMatrix*[cols;rows;focal];
             PixelNewPosition = round(PixelNewPosition/PixelNewPosition(3,1));
                 if (PixelNewPosition > 0) 
                 ImageB(PixelNewPosition(2,1),PixelNewPosition(1,1)) = ImageA(rows,cols); 

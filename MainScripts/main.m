@@ -5,9 +5,9 @@ close all
 %%                         READING ALL IMAGES 
 % *************************************************************************
 
-for FIG = 1:6
+for FIG = 1:2
     % READING BOAT IMAGES
-    boat(FIG).fig = imread(['img' num2str(FIG) '.pgm']);
+    boat(FIG).fig = imread(['door' num2str(FIG) '.jpg']);
 end
 
 for FIG = 1:5
@@ -18,9 +18,9 @@ end
 for FIG = 1:2
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
+    FDimages(FIG).fig = imread(['RR' num2str(FIG) '.JPG']);  
     % Uncomment if you need to rotate the images
-    %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
+    FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
 
 
@@ -31,7 +31,7 @@ end
 %% BOAT SEQUENCE 
 Bc = zeros(2,2,5);      % Boat coordinates
 Pictures = [1,2];       % Select the pictures to compare 
-for PT= 1:9
+for PT= 1:5
     for FIG = Pictures
         figure(FIG);
         imshow(boat(FIG).fig);
@@ -258,7 +258,7 @@ end
 
 [fMatrix, epipolarInliers, status] = estimateFundamentalMatrix(...
   matchedPoints1, matchedPoints2, 'Method', 'RANSAC', ...
-  'NumTrials', 10000, 'DistanceThreshold', 0.1, 'Confidence', 99.99);
+  'NumTrials', 10000, 'DistanceThreshold', 0.8, 'Confidence', 99.99);
 
 if status ~= 0 || isEpipoleInImage(fMatrix, size(I1)) ...
   || isEpipoleInImage(fMatrix', size(I2))
@@ -284,11 +284,6 @@ end
 tform1 = projective2d(t1);
 tform2 = projective2d(t2);
 
-% NB: HERE ONLY APPLY THE TRANSFORM TO THE IMAEGS WITH THE EPIPOLAR LINES
-% ON THE, THIS ENSURES THE INTEREST POINTS DON'T EFFECT THE TRANSFORMS
-% MATRICIES  
-RA = imread(['Rec1.png']); 
-RB = imread(['Rec2.png']); 
 [I1Rect, I2Rect] = rectifyStereoImages(I1, I2, tform1, tform2);
 if (visualize == 1)
 figure;

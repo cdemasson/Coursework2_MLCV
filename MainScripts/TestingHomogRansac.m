@@ -1,4 +1,5 @@
-% Testing the new form of the ransac homog matrix 
+% THIS SCRIPT TESTS THE HOMOG RANSAC FUNCTION AND THEN USES THE HOMOG
+% MATRIX TO TRANSFORM THE IMAGES 
 
 clear all 
 load MatchPoints1

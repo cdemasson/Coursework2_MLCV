@@ -13,3 +13,4 @@ function FM = FundMatrix(CC)
     f = V(:,9)/V(9,9); 
     FM = [f(1:3,1)';f(4:6,1)';f(7:9,1)'];  % Output the fundamental matrix
 end 
+
