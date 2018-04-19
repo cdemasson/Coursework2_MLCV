@@ -31,7 +31,7 @@ end
 %% BOAT SEQUENCE 
 Bc = zeros(2,2,5);      % Boat coordinates
 Pictures = [1,2];       % Select the pictures to compare 
-for PT= 1:15
+for PT= 1:9
     for FIG = Pictures
         figure(FIG);
         imshow(boat(FIG).fig);
@@ -101,6 +101,7 @@ plot(x,y,'r',Epipole(1,1),Epipole(2,1),'b+', Point(1,1), Point(2,1),'g+');
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 legend("Epipolar line", "Epipole", "Interest point"); 
 
+%%
 % Determining the projected epipolar line in image B, from a projection of
 % a point in image A using Line' = FM*X. 
 % Once off calculation to plot this projected epipolar line on image B
@@ -371,15 +372,16 @@ colorbar
 
 
 %%                      ADDITIONAL CODE 
+%%              THIS HAS BEEN CHANGES FOR THE BOAT IMAGES
 %         Collecting all epipolar lines and plotting them on the  two image 
-FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
+FM = FundMatrix(Bc);                % Estimating the fundamental matrix 
 % Calculate the maximum range in the X coordinate
-range = size(FDimages(1).fig);  
+range = size(boat(1).fig);  
 range = range(1,2); 
 
- for IPs = 1:length(FDcc)
-     PointA = FDcc(:,1,IPs);
-     PointB = FDcc(:,2,IPs);
+ for IPs = 1:length(Bc)
+     PointA = Bc(:,1,IPs);
+     PointB = Bc(:,2,IPs);
      
     EpipolarA = EpiLine(FM,PointA,true,range);
     EpipolarB = EpiLine(FM,PointA,false,range);
@@ -389,19 +391,19 @@ range = range(1,2);
 
 % Plotting the epipolar lines on the images
 figure(1);
-imshow(FDimages(1).fig)
+imshow(boat(1).fig)
 hold on 
 figure(2);
-imshow(FDimages(2).fig)
+imshow(boat(2).fig)
 hold on 
 
-for IPs = 1:length(FDcc)
+for IPs = 1:length(Bc)
 figure(1);
-plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',FDcc(1,1,IPs),FDcc(2,1,IPs),'g+'); 
+plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',Bc(1,1,IPs),Bc(2,1,IPs),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 hold on 
 figure(2);
-plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',FDcc(1,2,IPs),FDcc(2,2,IPs),'g+'); 
+plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',Bc(1,2,IPs),Bc(2,2,IPs),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 hold on 
 end

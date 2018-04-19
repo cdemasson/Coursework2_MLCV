@@ -8,7 +8,7 @@ function RanHomog = RANSACHomog(CC,Thres)
 % dimension is the number of the match point
 % ***********************************************************************
 Threshold = Thres;      % Select the pixel threshold used to evaluate matches
-UniquePt = 1;       % Initialise the unique point holder
+UniquePt = 1;           % Initialise the unique point holder
 
 % Perform 500 random samples 
     for I = 1 : 5000
