@@ -18,7 +18,7 @@ end
 for FIG = 1:2
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['FD' num2str(FIG) '.jpeg']);  
+    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
     % Uncomment if you need to rotate the images
     %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
@@ -31,7 +31,7 @@ end
 %% BOAT SEQUENCE 
 Bc = zeros(2,2,5);      % Boat coordinates
 Pictures = [1,2];       % Select the pictures to compare 
-for PT= 1:5
+for PT= 1:15
     for FIG = Pictures
         figure(FIG);
         imshow(boat(FIG).fig);
@@ -202,8 +202,8 @@ legend("Epipolar line", "Epipole", "Interest point");
 visualize = 1; 
 
 %                   STEP 1:   Read stereo image pair  
-I1 = FDimages(2).fig;
-I2 = FDimages(3).fig; 
+I1 = FDimages(1).fig;
+I2 = FDimages(2).fig; 
 % Convert to grayscale.
 I1gray = rgb2gray(I1);
 I2gray = rgb2gray(I2);
@@ -286,9 +286,9 @@ tform2 = projective2d(t2);
 % NB: HERE ONLY APPLY THE TRANSFORM TO THE IMAEGS WITH THE EPIPOLAR LINES
 % ON THE, THIS ENSURES THE INTEREST POINTS DON'T EFFECT THE TRANSFORMS
 % MATRICIES  
-RA = imread(['RectA.jpg']); 
-RB = imread(['RectB.jpg']); 
-[I1Rect, I2Rect] = rectifyStereoImages(RA, RB, tform1, tform2);
+RA = imread(['Rec1.png']); 
+RB = imread(['Rec2.png']); 
+[I1Rect, I2Rect] = rectifyStereoImages(I1, I2, tform1, tform2);
 if (visualize == 1)
 figure;
 imshowpair(I1Rect, I2Rect,'montage');
@@ -299,9 +299,10 @@ end
 
 %% Q2.2ee Perform image rectification using manually matched interest points
 
-% Step 1, calculate the fundamental matrix  
+% Step 1:          calculate the fundamental matrix  
 FM = FundMatrix(FDcc);                % Estimating the fundamental matrix 
-% Step 2, convert form of corresponding points   
+
+% Step 2:        convert form of corresponding points   
 MatchPoints1 = [];
 MatchPoints2 = []; 
 for i = 1:length(FDcc) 
@@ -309,18 +310,32 @@ for i = 1:length(FDcc)
     MatchPoints2 = [MatchPoints2;FDcc(:,2,i).' ]; 
 end 
 
+% Step 3:               Rectify images 
+[t1, t2] = estimateUncalibratedRectification(FM,MatchPoints1,MatchPoints1, size(FDimages(1).fig));
+tform1 = projective2d(t1);
+tform2 = projective2d(t2);
+
+RA = imread(['Rec1.png']); 
+RB = imread(['Rec2.png']); 
+
+[FD1Rect, FD2Rect] = rectifyStereoImages(FDimages(1).fig, FDimages(2).fig, tform1, tform2);
+
+figure;
+imshowpair(FD1Rect, FD2Rect,'montage');
+
+
 %%                      Q2.2c: Disparity map 
 
 %First convert to grayscale
 % NB: YOU MUST FIRST RUN Q2.2e, AND RECTIFY THE IMAGES
-ImageA = rgb2gray(FDimages(1).fig);
-ImageB = rgb2gray(FDimages(2).fig);
+ImageA = rgb2gray(FD1Rect);
+ImageB = rgb2gray(FD2Rect);
 % Disparity range is the range of disparity to show, the differenc must be
 % divisible by 16
 disparityRange = [0 16];
 % Blocksize is an odd interger in the range [5 255], it determines the
 % square block size for comparison. 
-disparityMap = disparity(ImageA,ImageB,'BlockSize',21,'DisparityRange',disparityRange);
+disparityMap = disparity(ImageA,ImageB,'BlockSize',5,'DisparityRange',disparityRange);
 figure(1)
 imshow(disparityMap,disparityRange);
 title('Disparity Map');
