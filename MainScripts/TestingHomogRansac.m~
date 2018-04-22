@@ -52,9 +52,10 @@ end
 
 %% CALCULATE THE HOMOGRQPHY MATRIX AND ACCURACY USING RANSAC 
 
-RanHomog = RANSACHomogNew(CPoints,2.5);  % Input the corrosponding points and the threshold 
-HAccuracy = HomogAccuracy(RanHomog.m,RanHomog.HM); 
+RanHomog = RANSACHomog(CPoints,0.9);  % Input the corrosponding points and the threshold 
+HAccuracy = HomogAccuracy(RanHomog.M,RanHomog.HM); 
 fprintf(" The number of correctly matched points is %4.2f \n", length(RanHomog.m));
+fprintf(" The accuracy for these points is %4.2f pixels \n", HAccuracy);
 
 %% Translating the image 
 for FIG = 1:6

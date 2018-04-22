@@ -203,8 +203,8 @@ legend("Epipolar line", "Epipole", "Interest point");
 visualize = 1; 
 
 %                   STEP 1:   Read stereo image pair  
-I1 = imread(['scene1.row3.col1.ppm']); 
-I2 = imread(['scene1.row3.col2.ppm']);
+I1 = imread(['scene1.row3col1.ppm']); 
+I2 = imread(['scene2.row3col1.ppm']);
 % Convert to grayscale.
 I1gray = rgb2gray(I1);
 I2gray = rgb2gray(I2);

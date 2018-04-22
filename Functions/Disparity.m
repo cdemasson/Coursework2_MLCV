@@ -6,13 +6,14 @@
 % W: Window size, defined as the thickness of the window. So a W value of 
 % would result in a 3x3 window. A W value of 2 would result in a 5x5 window
 
-function  DisparityMap = Disparity(IL,IR,W) 
+function  DisparityMap = Disparity(IL,IR,W,Threshold) 
 tic
-DisparityMap = zeros(size((IL),1),size((IL),2)); 
 IL = rgb2gray(IL); 
 IR = rgb2gray(IR); 
+DisparityMap = zeros(size(IL)); 
     % Iterate through all the rows (Y Coordinates)
     for row =  1 : size(IL,1) 
+        fprintf(" The current row is %4.2f \n", row); 
         % Iterate through all the cols (X Coordinates) 
         for col = 1 : size(IL,2)
             % Calculate the window ranges 
@@ -43,36 +44,45 @@ IR = rgb2gray(IR);
                 Rwindow = IR(Ymin:Ymax,XminR:XmaxR);
                 
                 % Case 3: First column of right image
-                if (Xr == 1 && (isequal(size(Rwindow), [2 2]) || isequal(size(Rwindow), [3 2]) ) && col ~=1) 
+                if (Xr == 1  && col ~=1) 
                     XminLtemp = boundary(col,col,IL,1);
                     % Recalculate left window size
                     Lwindow = IL(Ymin:Ymax,XminLtemp:XmaxL); 
                 end 
                 % Case 4: last column of right image
-                if (Xr == size(IL,2) && (isequal(size(Rwindow), [2 2])|| isequal(size(Rwindow), [3 2])) && col ~=size(IL,2)) 
+                if (Xr == size(IL,2)  && col ~=size(IL,2)) 
                     XmaxLtemp = boundary(col,col,IL,1); 
                     % Recalculate left window size
                     Lwindow = IL(Ymin:Ymax,XminL:XmaxLtemp); 
                 end 
                 
-                try 
+                % CALCULATING THE CURRENT SSD 
+                try % TRY/CATCH STATEMENT 
                 SSDcurrent = sum(sum((Lwindow - Rwindow).^2)); 
                 catch 
-                    disp("Problem: Window sizes do not match") 
+                    disp("Error 1: Window sizes do not match") 
                     pause()
                 end 
                 % If the current SSD is less than the minimum, assign the
                 % disparity and update the minimum SSD
-                try
+                
+                % COMPARING THE CURRENT SSD 
+                try% TRY/CATCH STATEMENT 
                 if (SSDcurrent < SSDmin) 
                     SSDmin = SSDcurrent; 
                     DisparityMap(row,col) = abs(col-Xr); 
+                    
+                    % BREAK OUT IF SSD is less than the threshold
+                    if (SSDmin < Threshold)
+                        break
+                    end 
+                    
                 end 
                 catch 
-                    disp("Problem calculating the SSD") 
+                    disp("Error 2: Unable to calculate the SSD") 
                     pause()
                 end 
-                
+             
             end 
         end
     end 
