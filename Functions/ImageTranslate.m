@@ -11,7 +11,7 @@ function ImageB = ImageTranslate(ImageA,TranslationMatrix,focal)
         for cols = 1 : size(ImageA,2)
             try 
             PixelNewPosition = TranslationMatrix*[cols;rows;focal];
-            PixelNewPosition = -1*round(focal*PixelNewPosition/PixelNewPosition(3,1));
+            PixelNewPosition = 1*round(focal*PixelNewPosition/PixelNewPosition(3,1));
                 if (PixelNewPosition(1:2,1) > 0) 
                 ImageB(PixelNewPosition(2,1),PixelNewPosition(1,1),:) = ImageA(rows,cols,:); 
                 end 

@@ -367,16 +367,20 @@ colorbar
 
 
 %%                      ADDITIONAL CODE 
-%%              THIS HAS BEEN CHANGES FOR THE BOAT IMAGES
-%         Collecting all epipolar lines and plotting them on the  two image 
-FM = FundMatrix(Bc);                % Estimating the fundamental matrix 
+%% Epipolar Line Drawer 
+
+% Select the images and corresponding points
+CPS = FDcc;
+ImageA = FDimages(1).fig;
+ImageB = FDimages(2).fig;
+FM = FundMatrix(CPS);                % Estimating the fundamental matrix 
 % Calculate the maximum range in the X coordinate
-range = size(boat(1).fig);  
+range = size(ImageA);  
 range = range(1,2); 
 
- for IPs = 1:length(Bc)
-     PointA = Bc(:,1,IPs);
-     PointB = Bc(:,2,IPs);
+ for IPs = 1:length(CPS)
+     PointA = CPS(:,1,IPs);
+     PointB = CPS(:,2,IPs);
      
     EpipolarA = EpiLine(FM,PointA,true,range);
     EpipolarB = EpiLine(FM,PointA,false,range);
@@ -386,26 +390,22 @@ range = range(1,2);
 
 % Plotting the epipolar lines on the images
 figure(1);
-imshow(boat(1).fig)
+imshow(ImageA)
 hold on 
 figure(2);
-imshow(boat(2).fig)
+imshow(ImageB)
 hold on 
 
-for IPs = 1:length(Bc)
+for IPs = 1:length(CPS)
 figure(1);
-plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',Bc(1,1,IPs),Bc(2,1,IPs),'g+'); 
+plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',CPS(1,1,IPs),CPS(2,1,IPs),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 hold on 
 figure(2);
-plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',Bc(1,2,IPs),Bc(2,2,IPs),'g+'); 
+plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',CPS(1,2,IPs),CPS(2,2,IPs),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 hold on 
 end
-%%  
-
-
-
 
 
 
