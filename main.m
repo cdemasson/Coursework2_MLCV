@@ -173,6 +173,7 @@ figure(1);
 chimney_interest_points1 = my_harris_detector(chimney(1).fig, alpha, trshld, r);
 figure(2);
 chimney_interest_points2 = my_harris_detector(chimney(2).fig, alpha, trshld, r);
+%%
 figure(3);
 chimney_interest_points3 = my_harris_detector(chimney(3).fig, alpha, trshld, r);
 figure(4);
@@ -191,7 +192,7 @@ chim_match_pts14 = KNN(chimney_descriptors1, chimney_descriptors4, chimney_inter
 
 %% homography matrix
 chimney_12_conv = convMatrix(chim_match_pts12);
-chimney_12_homog = HomogMatrix(chimney_12_conv);
+chimney_12_homog = HomogMatrix(chimney_12_conv)
 HAerror12 = HomogAccuracy(chimney_12_conv, chimney_12_homog);
 %%
 chimney_13_conv = convMatrix(chim_match_pts13);
@@ -206,15 +207,32 @@ HAerror14 = HomogAccuracy(chimney_14_conv, chimney_14_homog);
 %%                MANUALLY MATCHING INTEREST POINTS
 % *************************************************************************
 
-Cc = zeros(2,2,5);      % Chimney coordinates
+Cc = zeros(5,2);      % Chimney coordinates
 Pictures = [1,2];       % Select the pictures to compare 
-for PT= 1:5
+for PT= 1:10
     for FIG = Pictures
         figure(FIG);
         imshow(chimney(FIG).fig);
-        [Cc(1, FIG, PT), Cc(2, FIG, PT)] = ginput(1);
+        if FIG == 1
+            [Cc(PT,2), Cc(PT,1)] = ginput(1);
+        else 
+            [Cc(PT,4), Cc(PT,3)] = ginput(1);
+        end
     end
 end
 %%
-chimney_homog = HomogMatrix(Cc)
-HAerror12 = HomogAccuracy(Cc, chimney_homog);
+Cconv = convMatrix(Cc);
+chimney_homog = HomogMatrix(Cconv)
+HAerror12 = HomogAccuracy(Cconv, chimney_homog);
+%%
+ransac = RANSACHomog(Cconv,10);
+link_inoutliers(chimney, 1, 2, Cc)
+
+%%
+figure(1);
+imshow(chimney(1).fig);
+hold on;
+length(Cc);
+for pts = 1:length(Cc)
+    plot(Cc(pts,2), Cc(pts,1), 'r+');
+end

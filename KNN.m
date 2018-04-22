@@ -21,7 +21,7 @@ function [matching_points] = KNN(Train_BD, Test_BD, interest_points1, interest_p
 % -------------------------------------------------------------------------
 kNN = 10;                   %Number of neighbours considered
 nb_bins = size(Train_BD,2)-1;
-matching_points = zeros(100,4);
+matching_points = zeros(120,4);
 for n=1:size(matching_points,1)
     KKNN = zeros(kNN,2);        %[Distance, Label] Matrix 
     PREDICTION = zeros(2,3); 
