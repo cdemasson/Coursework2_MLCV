@@ -11,7 +11,7 @@ Threshold = Thres;      % Select the pixel threshold used to evaluate matches
 UniquePt = 1;           % Initialise the unique point holder
 
 % Perform 500 random samples 
-    for I = 1 : 500
+    for I = 1 : 5000
         % Step 1: Select 4 random corresponding points
         RandMatches = CC(:,:,randperm(length(CC),5)); 
         % Step 2: Calculate the homography matrix, using the RandMatches 

@@ -225,8 +225,8 @@ Cconv = convMatrix(Cc);
 chimney_homog = HomogMatrix(Cconv)
 HAerror12 = HomogAccuracy(Cconv, chimney_homog);
 %%
-ransac = RANSACHomog(Cconv,10);
-link_inoutliers(chimney, 1, 2, Cc)
+ransac = link_inoutliers(chimney, 1, 2, Cc);
+HomogAccuracy(ransac.m, ransac.HM)
 
 %%
 figure(1);
