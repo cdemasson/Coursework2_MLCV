@@ -86,14 +86,135 @@ chimney_interest_points2 = my_harris_detector(chimney(2).fig, alpha, trshld, r);
 figure(3);
 chimney_interest_points3 = my_harris_detector(chimney(3).fig, alpha, trshld, r);
 
+%% Display homography matrices with corresponding interest_points pic scaled 1 - 1/2
+pt = 1;
+for i = 1:length(chimney_interest_points1)
+    x = round(chimney_interest_points1(i,1)/2);
+    y = round(chimney_interest_points1(i,2)/2);
+    if x > 498
+        x = 498;
+    end
+    index = find(chimney_interest_points2(:,1) == x & chimney_interest_points2(:,2) < y+1 & chimney_interest_points2(:,2) > y-1);
+    if index ~= 0 
+        chim_match(pt,:) = [chimney_interest_points1(i,:) chimney_interest_points2(index(1),:)];
+        pt = pt + 1;
+    end
+end
+
+chim_match12 = convMatrix(chim_match);
+chim_homo12 = HomogMatrix(chim_match12)
+chim_acc12 = HomogAccuracy(chim_match12, chim_homo12);
+
+%% Display homography matrices with corresponding interest_points pic scaled 1 - 1/3
+pt = 1;
+for i = 1:length(chimney_interest_points1)
+    x = round(chimney_interest_points1(i,1)/3);
+    y = round(chimney_interest_points1(i,2)/3);
+    if x > 331
+        x = 331;
+    end
+    index = find(chimney_interest_points3(:,1) == x & chimney_interest_points3(:,2) < y+1 & chimney_interest_points3(:,2) > y-1);
+    if index ~= 0 
+        chim_match1(pt,:) = [chimney_interest_points1(i,:) chimney_interest_points3(index(1),:)];
+        pt = pt + 1;
+    end
+end
+
+chim_match13 = convMatrix(chim_match1);
+chim_homo13 = HomogMatrix(chim_match13)
+chim_acc13 = HomogAccuracy(chim_match13, chim_homo13);
+
+%% Display matches
+figure(1);
+title('Matching points on picture scale 1');
+imshow(chimney(1).fig);
+hold on;
+for pts = 1:size(chim_match,1)
+    plot(chim_match(pts,2), chim_match(pts,1), 'r+');
+end
+figure(2);
+title('Matching points on picture scale 1/2');
+imshow(chimney(2).fig);
+hold on;
+for pts = 1:size(chim_match,1)
+    plot(chim_match(pts,4), chim_match(pts,3), 'r+');
+end
+    
+%%
+figure(1)
+title('Matching points on picture scale 1');
+imshow(chimney(1).fig);
+hold on;
+for pts = 1:size(chim_match1,1)
+    plot(chim_match1(pts,2), chim_match1(pts,1), 'r+');
+end
+figure(2)
+title('Matching points on picture scale 1/3');
+imshow(chimney(3).fig);
+hold on;
+for pts = 1:size(chim_match1,1)
+    plot(chim_match1(pts,4), chim_match1(pts,3), 'r+');
+end
+
+% end of Q2.1.a
+
+%% Q2.1.b
+
+for FIG = 1:4
+    chimney(FIG).fig = imread(['chimney' num2str(FIG) '.JPG']);
+end
+
+%% Harris feature detector for chimney images
+close all;
+alpha = 0.05;
+trshld = 1;
+r = 6;
+figure(1);
+chimney_interest_points1 = my_harris_detector(chimney(1).fig, alpha, trshld, r);
+figure(2);
+chimney_interest_points2 = my_harris_detector(chimney(2).fig, alpha, trshld, r);
+figure(3);
+chimney_interest_points3 = my_harris_detector(chimney(3).fig, alpha, trshld, r);
+figure(4);
+chimney_interest_points4 = my_harris_detector(chimney(4).fig, alpha, trshld, r);
+
 %% Get chimney descriptors
 chimney_descriptors1 = colour_descriptor(chimney(1).fig, chimney_interest_points1);
 chimney_descriptors2 = colour_descriptor(chimney(2).fig, chimney_interest_points2);
 chimney_descriptors3 = colour_descriptor(chimney(3).fig, chimney_interest_points3);
+chimney_descriptors4 = colour_descriptor(chimney(4).fig, chimney_interest_points4);
 
 %% KNN search
-chimney_match = KNN(chimney_descriptors1, chimney_descriptors2, chimney_interest_points1, chimney_interest_points2, chimney);
+chim_match_pts12 = KNN(chimney_descriptors1, chimney_descriptors2, chimney_interest_points1, chimney_interest_points2, chimney);
+chim_match_pts13 = KNN(chimney_descriptors1, chimney_descriptors3, chimney_interest_points1, chimney_interest_points3, chimney);
+chim_match_pts14 = KNN(chimney_descriptors1, chimney_descriptors4, chimney_interest_points1, chimney_interest_points4, chimney);
+
+%% homography matrix
+chimney_12_conv = convMatrix(chim_match_pts12);
+chimney_12_homog = HomogMatrix(chimney_12_conv);
+HAerror12 = HomogAccuracy(chimney_12_conv, chimney_12_homog);
 %%
-chimney_match = KNN(chimney_descriptors1, chimney_descriptors3, chimney_interest_points1, chimney_interest_points3, chimney);
+chimney_13_conv = convMatrix(chim_match_pts13);
+chimney_13_homog = HomogMatrix(chimney_13_conv);
+HAerror13 = HomogAccuracy(chimney_13_conv, chimney_13_homog);
+%%
+chimney_14_conv = convMatrix(chim_match_pts14);
+chimney_14_homog = HomogMatrix(chimney_14_conv);
+HAerror14 = HomogAccuracy(chimney_14_conv, chimney_14_homog);
 
+% *************************************************************************
+%%                MANUALLY MATCHING INTEREST POINTS
+% *************************************************************************
 
+Cc = zeros(2,2,5);      % Chimney coordinates
+Pictures = [1,2];       % Select the pictures to compare 
+for PT= 1:5
+    for FIG = Pictures
+        figure(FIG);
+        imshow(chimney(FIG).fig);
+        [Cc(1, FIG, PT), Cc(2, FIG, PT)] = ginput(1);
+    end
+end
+%%
+chimney_homog = HomogMatrix(Cc)
+HAerror12 = HomogAccuracy(Cc, chimney_homog);
