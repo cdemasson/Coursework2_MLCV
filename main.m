@@ -217,7 +217,7 @@ HAerror14 = HomogAccuracy(chimney_14_conv, chimney_14_homog);
 for i = 1:4
     chimney_gray(i).fig = rgb2gray(chimney(i).fig);
 end
-% Harris feature detector for chimney images
+%% Harris feature detector for chimney images
 close all;
 alpha = 0.05;
 trshld = 1;
@@ -268,3 +268,72 @@ length(Cc);
 for pts = 1:length(Cc)
     plot(Cc(pts,2), Cc(pts,1), 'r+');
 end
+
+
+%% Testing the gradient descriptor function
+close all;
+alpha = 0.05;
+trshld = 1;
+r = 6;
+figure(1);
+chimIPts1 = my_harris_detector(chimney_gray(1).fig, alpha, trshld, r);
+figure(2);
+chimIPts2 = my_harris_detector(chimney_gray(2).fig, alpha, trshld, r);
+%% descriptors
+chimDes1 = gradient_descriptor(chimney_gray(1).fig, chimIPts1);
+chimDes2 = gradient_descriptor(chimney_gray(2).fig, chimIPts2);
+%%
+L = (imgaussfilt(chimney_gray(1).fig,1.5));
+imshow(L);
+%%
+clear m;
+for row = 2:size(L,1)-1
+    for col = 2:size(L,2)-1
+        m(row,col) = (L(row+1,col) - L(row-1,col)).^2 + (L(row,col+1) - L(row,col-1)).^2;
+    end
+end
+m(end+1,:) = 0;
+m(:,end+1)=0;
+m=sqrt(double(m));
+%%
+for row = 2:size(L,1)-1
+    for col = 2:size(L,2)-1
+        theta(row,col) = atand(double((L(row,col+1) - L(row,col-1)) / (L(row+1,col) - L(row-1,col))));
+    end
+end
+theta(end+1,:) = 0;
+theta(:,end+1)=0;
+%%
+dim = 1;
+nb_bins = 36;
+histo = zeros(length(chimIPts1), nb_bins);
+for pt = 1:length(chimIPts1)
+    for row = chimIPts1(pt,1)-dim : chimIPts1(pt,1)+dim
+        for col = chimIPts1(pt,2)-dim : chimIPts1(pt,2)+dim
+            if row > 0 && col > 0 && row < size(chimney_gray(1).fig,1) && col < size(chimney_gray(1).fig,2)
+                bin = round((theta(row,col)+5)/10);
+                histo(pt,bin) = histo(pt,bin) + m(row,col);
+            end
+        end
+    end
+end
+
+%%
+clear orientAss;
+pt = 1;
+for des = 1:size(chimIPts1,1)
+    [maxi,index] = max(histo(des,:));
+    orientAss(pt,:) = [des index];
+    pt = pt+1;
+    [row, col] = find(histo(1,:) < maxi & histo(1,:) > 0.8*maxi);
+    if size(col,2) ~= 0
+        for c = 1:size(col,2)
+            orientAss(pt,:) = [des col(1,c)];
+            pt=pt+1;
+        end
+    end
+end
+%%
+
+
+
