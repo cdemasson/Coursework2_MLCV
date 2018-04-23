@@ -10,7 +10,7 @@ new_pic(:,width+1:width*2,:) = pic_data(pic2).fig;
 matching_points(:,3) = matching_points(:,3);
 matching_points(:,4) = matching_points(:,4)+width;
 match_pts_conv = convMatrix(matching_points);
-RanHomog = RANSACHomog(match_pts_conv, 1);
+RanHomog = RANSACHomog(match_pts_conv, 3);
 figure(1);
 title('Showing inliers and outliers between two scenes');
 imshow(new_pic);
