@@ -52,7 +52,7 @@ end
 
 %% CALCULATE THE HOMOGRQPHY MATRIX AND ACCURACY USING RANSAC 
 
-RanHomog = RANSACHomogNew(CPoints,2.5);  % Input the corrosponding points and the threshold 
+RanHomog = RANSACHomog(CPoints,2.5);  % Input the corrosponding points and the threshold 
 HAccuracy = HomogAccuracy(RanHomog.m,RanHomog.HM); 
 fprintf(" The number of correctly matched points is %4.2f \n", length(RanHomog.m));
 
