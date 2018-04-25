@@ -6,7 +6,7 @@ function RanHomog = link_inoutliers(pic_data, pic1, pic2, matching_points)
 
 width = size(pic_data(pic1).fig, 2);
 new_pic(:,1:width,:) = pic_data(pic1).fig;
-new_pic(:,width+1:width*2,:) = pic_data(pic2).fig;
+new_pic(:,width+1:width*2,:) = pic_data(pic1).fig;
 matching_points(:,3) = matching_points(:,3);
 matching_points(:,4) = matching_points(:,4)+width;
 match_pts_conv = convMatrix(matching_points);

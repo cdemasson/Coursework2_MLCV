@@ -7,9 +7,9 @@ function [matching_points] = KNN(Train_BD, Test_BD, interest_points1, interest_p
 %training points. 
 
 % Here the training data is split into the coordinates and the labels. 
-% Train_BD = boat_descriptors1;
  Train_BDL = 1:length(Train_BD); %The corrosponding labels of the training points 
- Train_BD = [Train_BD Train_BDL'];
+%  Train_BD = [Train_BD Train_BDL'];
+ Train_BD(:,end) = Train_BDL';
 
 % The testing data consists only of testing point coordinates with no label
 % Test_BD = boat_descriptors2; 
@@ -26,10 +26,10 @@ for n=1:size(matching_points,1)
     KKNN = zeros(kNN,2);        %[Distance, Label] Matrix 
     PREDICTION = zeros(2,3); 
     %Iterate through all test data 
-    for i = 1 : length(Test_BD)     
+    for i = 1 : size(Test_BD,1)     
         %Iterate through all train data
         %length(Train_BD)
-        for k = 1 : length(Train_BD)
+        for k = 1 : size(Train_BD,1)
             %Point - Holds the distance between the current train and test data
             %points and the label of the train data point 
             L = 0;
@@ -70,7 +70,7 @@ for n=1:size(matching_points,1)
     end
     matching_points(n,:) = [interest_points1(label,:) interest_points2(iPt,:)];
     row_to_delete = find(Train_BD(:,end) == label);
-    Train_BD(row_to_delete,:) = [];
+    Train_BD(row_to_delete(1),:) = [];
     Test_BD(iPt,:) = [];
 %     if PREDICTION(i,2) > 25
 %         break;

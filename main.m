@@ -104,6 +104,10 @@ end
 chim_match12 = convMatrix(chim_match);
 chim_homo12 = HomogMatrix(chim_match12)
 chim_acc12 = HomogAccuracy(chim_match12, chim_homo12);
+%%
+chim_ransac12 = RANSACHomog(chim_match12, 1.5);
+chim_acc12 = HomogAccuracy(chim_ransac12.m, chim_ransac12.HM);
+link_inoutliers(chimney, 1, 2, chim_match);
 
 %% Display homography matrices with corresponding interest_points pic scaled 1 - 1/3
 pt = 1;
@@ -187,11 +191,14 @@ chimney_interest_points4 = my_harris_detector(chimney(4).fig, alpha, trshld, r);
 %% Get chimney descriptors
 chimney_descriptors1 = colour_descriptor(chimney(1).fig, chimney_interest_points1);
 chimney_descriptors2 = colour_descriptor(chimney(2).fig, chimney_interest_points2);
+%%
 chimney_descriptors3 = colour_descriptor(chimney(3).fig, chimney_interest_points3);
 chimney_descriptors4 = colour_descriptor(chimney(4).fig, chimney_interest_points4);
 
 %% KNN search
 chim_match_pts12 = KNN(chimney_descriptors1, chimney_descriptors2, chimney_interest_points1, chimney_interest_points2, chimney);
+
+%%
 chim_match_pts13 = KNN(chimney_descriptors1, chimney_descriptors3, chimney_interest_points1, chimney_interest_points3, chimney);
 chim_match_pts14 = KNN(chimney_descriptors1, chimney_descriptors4, chimney_interest_points1, chimney_interest_points4, chimney);
 
@@ -279,61 +286,50 @@ figure(1);
 chimIPts1 = my_harris_detector(chimney_gray(1).fig, alpha, trshld, r);
 figure(2);
 chimIPts2 = my_harris_detector(chimney_gray(2).fig, alpha, trshld, r);
+%%
+for pts = size(chimIPts1,1):-1:1
+    if chimIPts1(pts,1) < 9 || chimIPts1(pts,1) > 326-8 || chimIPts1(pts,2) < 8 || chimIPts1(pts,2) > 491-9
+        chimIPts1(pts,:) = [];
+    end
+end
+for pts = size(chimIPts2,1):-1:1
+    if chimIPts2(pts,1) < 9 || chimIPts2(pts,1) > 326-8 || chimIPts2(pts,2) < 8 || chimIPts2(pts,2) > 491-9
+        chimIPts2(pts,:) = [];
+    end
+end
 %% descriptors
 chimDes1 = gradient_descriptor(chimney_gray(1).fig, chimIPts1);
+%%
+labelTmp = chimDes1(1,end);
+for row = 2:size(chimDes1,1)
+    label = chimDes1(row,end);
+    if label == labelTmp
+        chimIPts1 = [chimIPts1(1:row-1,:); chimIPts1(row-1,:); chimIPts1(row:end,:)];
+    end
+    labelTmp = label;
+end
+%%
 chimDes2 = gradient_descriptor(chimney_gray(2).fig, chimIPts2);
 %%
-L = (imgaussfilt(chimney_gray(1).fig,1.5));
-imshow(L);
-%%
-clear m;
-for row = 2:size(L,1)-1
-    for col = 2:size(L,2)-1
-        m(row,col) = (L(row+1,col) - L(row-1,col)).^2 + (L(row,col+1) - L(row,col-1)).^2;
+labelTmp = chimDes2(1,end);
+for row = 2:size(chimDes2,1)
+    label = chimDes2(row,end);
+    if label == labelTmp
+        chimIPts2 = [chimIPts2(1:row-1,:); chimIPts2(row-1,:); chimIPts2(row:end,:)];
     end
+    labelTmp = label;
 end
-m(end+1,:) = 0;
-m(:,end+1)=0;
-m=sqrt(double(m));
-%%
-for row = 2:size(L,1)-1
-    for col = 2:size(L,2)-1
-        theta(row,col) = atand(double((L(row,col+1) - L(row,col-1)) / (L(row+1,col) - L(row-1,col))));
-    end
-end
-theta(end+1,:) = 0;
-theta(:,end+1)=0;
-%%
-dim = 1;
-nb_bins = 36;
-histo = zeros(length(chimIPts1), nb_bins);
-for pt = 1:length(chimIPts1)
-    for row = chimIPts1(pt,1)-dim : chimIPts1(pt,1)+dim
-        for col = chimIPts1(pt,2)-dim : chimIPts1(pt,2)+dim
-            if row > 0 && col > 0 && row < size(chimney_gray(1).fig,1) && col < size(chimney_gray(1).fig,2)
-                bin = round((theta(row,col)+5)/10);
-                histo(pt,bin) = histo(pt,bin) + m(row,col);
-            end
-        end
-    end
-end
+%% KNN search
+chim_match_pts12 = KNN(chimDes1, chimDes2, chimIPts1, chimIPts2, chimney_gray);
 
+%% homography matrix
+chimney_12_conv = convMatrix(chim_match_pts12);
+chimney_12_homog = HomogMatrix(chimney_12_conv)
+HAerror12 = HomogAccuracy(chimney_12_conv, chimney_12_homog);
 %%
-clear orientAss;
-pt = 1;
-for des = 1:size(chimIPts1,1)
-    [maxi,index] = max(histo(des,:));
-    orientAss(pt,:) = [des index];
-    pt = pt+1;
-    [row, col] = find(histo(1,:) < maxi & histo(1,:) > 0.8*maxi);
-    if size(col,2) ~= 0
-        for c = 1:size(col,2)
-            orientAss(pt,:) = [des col(1,c)];
-            pt=pt+1;
-        end
-    end
-end
+chimney_12_ransac = RANSACHomog(chimney_12_conv, 10);
+HAerror12 = HomogAccuracy(chimney_12_ransac.m, chimney_12_ransac.HM);
 %%
-
+ransac = link_inoutliers(chimney_gray, 1, 2, chim_match_pts12);
 
 
