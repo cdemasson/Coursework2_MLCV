@@ -18,9 +18,9 @@ end
 for FIG = 1:2
     % READING FD IMAGES
     % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['RR' num2str(FIG) '.JPG']);  
+    FDimages(FIG).fig = imread(['scene1.row3.col' num2str(FIG) '.ppm']);  
     % Uncomment if you need to rotate the images
-    FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
+    %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
 end
 
 
@@ -75,7 +75,9 @@ end
 HM = HomogMatrix(Bc); 
 
 %% Q1, 3b: Calculating the fundamental matrix (FA)
-FM = FundMatrix(Tc); 
+%FM = FundMatrix(Tc); 
+Ransac = RANSACFund(Tc,0.9);
+FM = Ransac.FM; 
 
 %% Q1, 3c: Homographic point projection and accruacy  
 
@@ -100,6 +102,25 @@ hold on
 plot(x,y,'r',Epipole(1,1),Epipole(2,1),'b+', Point(1,1), Point(2,1),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 legend("Epipolar line", "Epipole", "Interest point"); 
+
+%% Plotting on image 2 
+
+range = size(tsukuba(2).fig); 
+range = range(1,2); 
+Point = Tc(:,2,3); 
+Epipolar = EpiLine(FM,Point,false,range); 
+xb = Epipolar.x; 
+yb = Epipolar.y; 
+Epipole = Epipolar.e; 
+
+% Plotting 
+figure(1);
+imshow(tsukuba(2).fig)
+hold on 
+plot(xb,yb,'r', Point(1,1), Point(2,1),'b+'); 
+set(findall(gca, 'Type', 'Line'),'LineWidth',2);
+legend("Epipolar line", "Interest point"); 
+
 
 %%
 % Determining the projected epipolar line in image B, from a projection of
@@ -324,14 +345,16 @@ imshowpair(FD1Rect, FD2Rect,'montage');
 
 %First convert to grayscale
 % NB: YOU MUST FIRST RUN Q2.2e, AND RECTIFY THE IMAGES
-ImageA = rgb2gray(FD1Rect);
-ImageB = rgb2gray(FD2Rect);
+I1 = imread(['scene1.row3.col1.ppm']); 
+I2 = imread(['scene1.row3.col2.ppm']);
+ImageA = rgb2gray(I1);
+ImageB = rgb2gray(I2);
 % Disparity range is the range of disparity to show, the differenc must be
 % divisible by 16
 disparityRange = [0 16];
 % Blocksize is an odd interger in the range [5 255], it determines the
 % square block size for comparison. 
-disparityMap = disparity(ImageA,ImageB,'BlockSize',5,'DisparityRange',disparityRange);
+disparityMap = disparity(ImageA,ImageB,'BlockSize',7,'DisparityRange',disparityRange);
 figure(1)
 imshow(disparityMap,disparityRange);
 title('Disparity Map');
@@ -341,30 +364,32 @@ colorbar
 %%                      Q2.2d: Depth map from disparity map 
 
 % Define camera constants in m 
-focal_length = 18; 
+focal_length = 17; 
 baseline = 200;
-SensorSize = 0.00487; 
-%SensorSize = 200; 
+%SensorSize = 0.5; 
 
-DepthMap = (focal_length*baseline)./((disparityMap)*SensorSize); 
-%DepthMap = DepthMap/1000;    % Convert to m 
-%find(DepthMap == Inf) 
+z = (focal_length*baseline)./((DispMap)); 
 
-depthRange = [0 3000];
+depthRange = [0 1400];
 figure(2)
-imshow(DepthMap,depthRange) 
+imshow(z,depthRange) 
 title('Depth Map');
 colorbar
 
 %%              Q2.2e: Depth map from disparity map with random noise 
 
-disparityMapNoise = disparityMap+2*rand();
-figure(2)
-imshow(disparityMapNoise,disparityRange);
-title('Disparity Map');
-colormap(gca,jet) 
-colorbar
+% Define camera constants in m 
+focal_length = 22; 
+baseline = 200; 
 
+Noise = normrnd(2, 0.9, 288,384); 
+disparityMapNoise = disparityMap + Noise;
+DepthMapNew = (focal_length*baseline)./((disparityMapNoise)); 
+depthRange = [0 1400];
+figure(2)
+imshow(DepthMapNew,depthRange) 
+title('Depth Map');
+colorbar
 
 %%                      ADDITIONAL CODE 
 %% Epipolar Line Drawer 
@@ -373,7 +398,10 @@ colorbar
 CPS = FDcc;
 ImageA = FDimages(1).fig;
 ImageB = FDimages(2).fig;
-FM = FundMatrix(CPS);                % Estimating the fundamental matrix 
+FMR = RANSACFund(CPS,0.9);                % Estimating the fundamental matrix 
+FM = FMR.FM;
+CPS = FMR.m; 
+
 % Calculate the maximum range in the X coordinate
 range = size(ImageA);  
 range = range(1,2); 

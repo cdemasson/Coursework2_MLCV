@@ -1,37 +1,8 @@
-% Script for generating accuracies for 2.2a 
-clear all 
-for FIG = 1:2
-    % READING FD IMAGES
-    % SELECT WHICH FD IMAGES TO USE
-    FDimages(FIG).fig = imread(['lamp' num2str(FIG) '.JPG']);  
-    % Uncomment if you need to rotate the images
-    %FDimages(FIG).fig = imrotate(FDimages(FIG).fig,-90);           
-end
-
-%%                  Manually selected points 
-FDcc = zeros(2,2,4);      % FD Corrosponding Coordinates
-Picture = [1,2];       % Select the pictures to compare
-Pic1 = Picture(1,1); 
-Pic2 = Picture(1,2); 
-for PT= 1:10
-    for FIG = 1:2
-        figure(FIG);
-        % This ensures the pictures swap regardness of which pictures are
-        % chosen 
-        if (FIG == 1)
-            Pic = Pic1; 
-        else 
-            Pic = Pic2; 
-        end 
-        imshow(FDimages(Pic).fig);
-        [FDcc(1,FIG, PT), FDcc(2,FIG, PT)] = ginput(1);
-    end
-end
-
 %%                  Automatically selected points 
 %                   STEP 1:   Read stereo image pair  
-I1 = imread(['Image1.png']); 
-I2 = imread(['Image2.png']);
+clear all 
+I1 = imread(['scene1.row3.col1.ppm']); 
+I2 = imread(['scene1.row3.col5.ppm']);
 % Convert to grayscale.
 I1gray = rgb2gray(I1);
 I2gray = rgb2gray(I2);
@@ -89,35 +60,21 @@ for i = 1 : length(matchedPoints1.Location)
 end 
 
 
-
-
-%%              CALCULATING THE ACCURACIES without RANSAC
-
-FMA = FundMatrix(CC); 
-FMB  = FundMatrix(FDcc); 
-FAaccA = Fund_Matrix_Accuracy(FMA,CC);
-FAaccB = Fund_Matrix_Accuracy(FMB,FDcc);
-
-%%              CALCULATING THE ACCURACIES with RANSAC 
-RanFundA = RANSACFund(CC,0.8);  
-%RanFundB = RANSACFund(FDcc,0.9);  
-
-FAccuracyA = Fund_Matrix_Accuracy(RanFundA.FM,RanFundA.m); 
-%FAccuracyB = Fund_Matrix_Accuracy(RanFundB.FM,RanFundB.m); 
-
-
-%%          QUESTION 2.2b 
+%%
 
 % Select the images and corresponding points
 CPS = CC;
 ImageA = I1;
 ImageB = I2;
-FM = RanFundA.FM;                % Estimating the fundamental matrix 
+FMR = RANSACFund(CPS,0.9);                % Estimating the fundamental matrix 
+FM = FMR.FM;
+CPS = FMR.m; 
+
 % Calculate the maximum range in the X coordinate
 range = size(ImageA);  
 range = range(1,2); 
 
- for IPs = 1:10
+ for IPs = 10: 20 %length(CPS)
      PointA = CPS(:,1,IPs);
      PointB = CPS(:,2,IPs);
      
@@ -135,7 +92,7 @@ figure(2);
 imshow(ImageB)
 hold on 
 
-for IPs = 1:10
+for IPs = 10:20 % length(CPS)
 figure(1);
 plot(EpilinesA(IPs).fig(1,:),EpilinesA(IPs).fig(2,:),'r',CPS(1,1,IPs),CPS(2,1,IPs),'g+'); 
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
@@ -145,9 +102,6 @@ plot(EpilinesB(IPs).fig(1,:),EpilinesB(IPs).fig(2,:),'r',CPS(1,2,IPs),CPS(2,2,IP
 set(findall(gca, 'Type', 'Line'),'LineWidth',2);
 hold on 
 end
-
-
-
 
 
 
